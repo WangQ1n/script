@@ -1,74 +1,33 @@
 #include<vector>
 #include<unordered_map>
 #include<map>
-#include<opencv2/opencv.hpp>
-#include <iostream>
-#include<queue>
+
 std::pair<int, int> FindStonePair(std::vector<float>& stone_weights, float diff);
 std::vector<std::pair<int, int>> FindStonePairs(std::vector<float>& stone_weights, float diff);
 unsigned int uniquePathsWithObstacles(std::vector<std::vector<int>>& obstacle_grid);
 unsigned int uniquePathsWithObstaclesBySpaceOptimization(std::vector<std::vector<int>>& obstacle_grid);
-void quickSort(int* arr, int l, int r);
+
 int main(int argc, char *argv)
 {
-  // std::vector<float> stones = {1,4,2,3,2,8,5,4,3,5,6};
-  // float diff = 2;
-  // std::pair<int, int> stone_pair = FindStonePair(stones, diff);
-  // printf ("%d -- %d \n", stone_pair.first, stone_pair.second);
-  // std::vector<std::pair<int, int>> stone_pairs = FindStonePairs(stones, diff);
-  // for (auto pair : stone_pairs) {
-  //   printf("%d -- %d\n", pair.first, pair.second);
-  // }
 
-  // std::vector<std::vector<int>> obstacle_grid = {{0,0,0,0,1},
-  //                                                {0,0,0,1,0},
-  //                                                {1,0,0,0,0}};
-  // unsigned int paths = uniquePathsWithObstacles(obstacle_grid);
-  // printf("total path:%d\n", paths);
-  // paths = uniquePathsWithObstaclesBySpaceOptimization(obstacle_grid);
-  // printf("total path:%d\n", paths);
-
-  int order[] = {3,5,1,7,4,5,8,2};
-  quickSort(order, 0, 8-1);
-  for (auto num : order) {
-    printf ("%d -> ", num);
+  std::vector<float> stones = {1,4,2,3,2,8,5,4,3,5,6};
+  float diff = 2;
+  std::pair<int, int> stone_pair = FindStonePair(stones, diff);
+  printf ("%d -- %d \n", stone_pair.first, stone_pair.second);
+  std::vector<std::pair<int, int>> stone_pairs = FindStonePairs(stones, diff);
+  for (auto pair : stone_pairs) {
+    printf("%d -- %d\n", pair.first, pair.second);
   }
-  printf("\n");
+
+  std::vector<std::vector<int>> obstacle_grid = {{0,0,0,0,1},
+                                                 {0,0,0,1,0},
+                                                 {1,0,0,0,0}};
+  unsigned int paths = uniquePathsWithObstacles(obstacle_grid);
+  printf("total path:%d\n", paths);
+  paths = uniquePathsWithObstaclesBySpaceOptimization(obstacle_grid);
+  printf("total path:%d\n", paths);
   return 1;
 }
-
-void quickSort(int* arr, int l, int r)
-{
-  if (r <= l)
-    return;
-
-  int start = l, end = r;
-  int val = arr[(start + end) / 2];
-
-  while(start < end) {
-    while (1) {
-      if (arr[end] < val) {
-        break;
-      } else {
-        end--;
-      }
-    }
-    while (1)
-    {
-      if (arr[start] > val) {
-        break;
-      } else {
-        start++;
-      }
-    }
-    if (start < end) {
-      std::swap(arr[start], arr[end]);
-    }
-  }
-  quickSort(arr, l, end);
-  quickSort(arr, end + 1, r);
-}
-
 
 /*
  * Problem 2 Find stone pair(s)
