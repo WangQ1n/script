@@ -15,11 +15,28 @@ if (CUDA_FOUND)
   message("Library: " ${CUDA_CUDA_LIBRARY})
   message("Runtime: " ${CUDA_CUDART_LIBRARY})
 endif()
-
+find_package(PCL  REQUIRED)
+if (PCL_FOUND)
+  message("-- You find the PCL success! --")
+  message("Version: " ${PCL_VERSION})
+  else()
+  message("-- You find the PCL failed! --")
+endif ()
+find_package(Eigen3 QUIET)
+if (Eigen3_FOUND)
+  message("-- You find the Eigen3 success! --")
+  message("Version: " ${Eigen3_VERSION})
+  else()
+  message("-- You find the Eigen3 failed! --")
+endif ()
 include_directories(
         ${CMAKE_SOURCE_DIR}/include
         ${OpenCV_INCLUDE_DIRS}
+        ${PCL_INCLUDE_DIRS}
 )
+
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 include_directories(/usr/local/cuda/include)
 link_directories(/usr/local/cuda/lib64)
