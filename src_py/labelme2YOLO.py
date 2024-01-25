@@ -18,30 +18,39 @@ import PIL.Image
 from sklearn.model_selection import train_test_split
 from labelme import utils
 
-label_idx_map = {'rail': 0, 'railway': 0}
-
-
+val_size = 0.1
+json_name = None
+label_idx_map = {'railway': 0, 'railway2': 0, 'fork': 1}
+# label_idx_map = {'railway': 0, 'fork': 1}
+root = "/home/crrcdt123/datasets/railway_segmentation/"
+datasets = {"shen12": ["2023-08-11",
+                       "2023-09-26",
+                       "2023-09-27"],
+            "puzhen": ["2023-12-28"],
+            "qiaolin": ["2024-1-6-morning"]}
+save_path = "/home/crrcdt123/datasets/railway_segmentation/mixed_111"
+cnt_ = 0
 class Labelme2YOLO(object):
 
-    def __init__(self, json_dir, img_dir):
+    def __init__(self, json_dir, img_dir, save_dir, cnt):
         self._json_dir = json_dir
         self._img_dir = img_dir
+        self._save_dir = save_dir
         self._label_id_map = label_idx_map
+        self._cnt = cnt
 
     def _make_train_val_dir(self):
-        self._label_dir_path = os.path.join(self._json_dir,
-                                            'yolo/labels/')
-        self._image_dir_path = os.path.join(self._json_dir,
-                                            'yolo/images/')
-
+        self._label_dir_path = os.path.join(self._save_dir,
+                                            'labels/')
+        self._image_dir_path = os.path.join(self._save_dir,
+                                            'images/')
         for yolo_path in (os.path.join(self._label_dir_path + 'train/'),
                           os.path.join(self._label_dir_path + 'val/'),
                           os.path.join(self._image_dir_path + 'train/'),
                           os.path.join(self._image_dir_path + 'val/')):
-            if os.path.exists(yolo_path):
+            if os.path.exists(yolo_path) and self._cnt == 0:
                 shutil.rmtree(yolo_path)
-
-            os.makedirs(yolo_path)
+                os.makedirs(yolo_path)
 
     def _get_label_id_map(self, json_dir):
         # label_set = set()
@@ -135,7 +144,8 @@ class Labelme2YOLO(object):
                 elif shape['shape_type'] == 'polygon':  # lll
                     yolo_obj = self._get_polygon_shape_yolo_object(
                         shape, img_h, img_w)
-                    yolo_obj_list.append(yolo_obj)
+                    if len(yolo_obj) != 0:
+                        yolo_obj_list.append(yolo_obj)
                 elif shape['shape_type'] == 'rectangle':
                     yolo_obj = self._get_other_shape_yolo_object(
                         shape, img_h, img_w)
@@ -197,9 +207,12 @@ class Labelme2YOLO(object):
         label_id_polygon_points = []
         # label_id = self._label_id_map[shape['label'].rstrip(
         #     string.digits).rstrip('_').rstrip(string.digits)]
-        label_id = self._label_id_map[shape['label']]
-        label_id_polygon_points.append(label_id)
-
+        if shape['label'] in self._label_id_map:
+            label_id = self._label_id_map[shape['label']]
+            label_id_polygon_points.append(label_id)
+        else:
+            return label_id_polygon_points
+        
         x_lists, y_lists = __get_points_list(shape['points'])
         for x_point, y_point in zip(x_lists, y_lists):
             yolo_x = round(float(x_point / img_w), 6)
@@ -246,7 +259,7 @@ class Labelme2YOLO(object):
         return img_path
 
     def _save_dataset_yaml(self):
-        yaml_path = os.path.join(self._json_dir, 'yolo/',
+        yaml_path = os.path.join(self._save_dir,
                                  'dataset.yaml')
 
         with open(yaml_path, 'w+') as yaml_file:
@@ -264,34 +277,14 @@ class Labelme2YOLO(object):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--json_dir',
-        type=str,
-        default='/home/crrcdt123/datasets/segmentation/mixed/labels',
-        help='Please input the path of the labelme json files.')
-    parser.add_argument(
-        '--img_dir',
-        type=str,
-        default='/home/crrcdt123/datasets/segmentation/mixed/images',
-        help='Please input the path of the labelme img files.')
-    parser.add_argument(
-        '--val_size',
-        type=float,
-        nargs='?',
-        default=0.1,
-        help='Please input the validation dataset size, for example 0.1 ')
-    parser.add_argument(
-        '--json_name',
-        type=str,
-        nargs='?',
-        default=None,
-        help=
-        'If you put json name, it would convert only one json file to YOLO.')
-    args = parser.parse_args(sys.argv[1:])
-
-    convertor = Labelme2YOLO(args.json_dir, args.img_dir)
-    if args.json_name is None:
-        convertor.convert(val_size=args.val_size)
-    else:
-        convertor.convert_one(args.json_name)
+    for ds in datasets:
+        for sub_ds in datasets[ds]:
+            print(sub_ds)
+            json_dir = os.path.join(root, ds, sub_ds, "labels")
+            img_dir = os.path.join(root, ds, sub_ds, "images")
+            convertor = Labelme2YOLO(json_dir, img_dir, save_path, cnt_)
+            cnt_ = cnt_+1
+            if json_name is None:
+                convertor.convert(val_size=val_size)
+            else:
+                convertor.convert_one(json_name)

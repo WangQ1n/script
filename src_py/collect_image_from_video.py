@@ -6,10 +6,10 @@ def main():
     """
     抽帧获取图像
     """
-    root = "/media/crrcdt123/glam1/crrc/datasets/shen12/1235障碍物视频/6车_video/0022-20230618-214939/"
-    name = "0022-20230618-214939 (1).mp4"
+    root = "/media/crrcdt123/glam1/crrc/datasets/桥林/"
+    name = "video_cam_short-20240106-103345-2-C6.mkv"
     video_path = os.path.join(root, name)
-    save_dir = os.path.join("/home/crrcdt123/datasets/segmentation/2023-09-27/", "images")
+    save_dir = os.path.join("/media/crrcdt123/glam1/crrc/datasets/桥林/", "images")
     save_path = os.path.join(save_dir, "%s_%s.jpg")
     cap = cv2.VideoCapture(video_path)
     # width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)  # float
@@ -21,7 +21,8 @@ def main():
         if ret_val is False:
             break
         if video_frame % 25 == 0:
-            cv2.imwrite(save_path % (name.replace(" (1).mp4", ""), video_frame), frame)
+            tmp = save_path % (name.replace(".mp4", ""), video_frame)
+            cv2.imwrite(save_path % (name.replace(".mp4", ""), video_frame), frame)
             cv2.imshow("img", frame)
         video_frame = video_frame + 1
         ch = cv2.waitKey(1)

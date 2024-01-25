@@ -41,19 +41,30 @@ add_definitions(${PCL_DEFINITIONS})
 include_directories(/usr/local/cuda/include)
 link_directories(/usr/local/cuda/lib64)
 
-cuda_add_library(gpu_speed_test SHARED
-include/gpu_speed_test.h
-src/gpu_speed_test.cu
+# cuda_add_library(gpu_speed_test SHARED
+# include/gpu_speed_test.h
+# src_cpp/gpu_speed_test.cu
+# )
+
+add_executable(mutilthread_test
+        src_cpp/mutilthread.cpp         
+)
+
+target_link_libraries(mutilthread_test
+        ${OpenCV_LIBS}
 )
 
 add_executable(func_test
-        src/main.cpp
-        
+src_cpp/func.cpp 
+)
+target_link_libraries(func_test
+  ${OpenCV_LIBS}
 )
 
-
-target_link_libraries(func_test
-        ${OpenCV_LIBS}
-        gpu_speed_test
+add_executable(fillPoly_test
+src_cpp/fillPolye_error_test.cpp 
+)
+target_link_libraries(fillPoly_test
+  ${OpenCV_LIBS}
 )
 
