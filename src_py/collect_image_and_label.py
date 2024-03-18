@@ -1,6 +1,8 @@
-# -*- coding: utf-8 -*-
+##################################
+# 整理无标签的图像：搜集匹配的图像和标签，存入另一个文件夹
+##################################
 import os
-import json
+import shutil
 
 def getFileName(Path_File, Type_File):
     # Path_File是文件夹的路径，Type_File是文件的种类（Eg：‘.txt’）
@@ -9,52 +11,42 @@ def getFileName(Path_File, Type_File):
     List_AllFile = os.listdir(Path_File)
     # 返回文件夹中所有文件的列表
     for i in range(len(List_AllFile)):
-    # 逐个文件循环
+        # 逐个文件循环
         if os.path.splitext(List_AllFile[i])[1] == Type_File:
-        # 如果第i个文件的类别是Type_File，则进入if
+            # 如果第i个文件的类别是Type_File，则进入if
             List_FileName.append(List_AllFile[i])
             # 存储第i个文件的名称
             # 欢迎使用，使用请注明来源，作者姜正，邮箱jiangzheng221@mails.ucas.ac.cn，中国科学院海洋所
     return List_FileName
 
-def main():
-    """
-    抽帧获取图像
-    """
-    root = "/media/crrcdt123/glam1/crrc/datasets/shen12/1240障碍物视频/1车_image/"
-    convert_img_path = "/media/crrcdt123/glam1/crrc/datasets/shen12/1240障碍物视频/1车_image/convertimg"
-    convert_label_path = "/media/crrcdt123/glam1/crrc/datasets/shen12/1240障碍物视频/1车_image/convertlabel"
 
-    floder = "0021-20230620-184140"
-    img_floder = os.path.join(root, floder)
-    json_path = os.path.join(root, floder + "-label")
-    save_img_path = os.path.join(convert_img_path, "%s_%s.jpg")
-    save_label_path = os.path.join(convert_label_path, "%s_%s.json")
-    label_names = getFileName(json_path, ".json")
-    img_path_in_json = "../images/%s_%s.jpg"
+def main():
+    root = "/media/crrcdt123/glam1/crrc/datasets/s8/video_raw/train/"
+    collect_dir = "/home/crrcdt123/datasets/railway_segmentation/s8/2024-03-07/"
+    img_dir = os.path.join(root, "images")
+    json_dir = os.path.join(root, "labels")
+    save_img_dir = os.path.join(collect_dir, "images")
+    save_label_dir = os.path.join(collect_dir, "labels")
+    save_img_path = os.path.join(save_img_dir, "%s")
+    save_label_path = os.path.join(save_label_dir, "%s")
+    for yolo_path in (save_img_dir, save_label_dir):
+        if os.path.exists(yolo_path) is False:
+            os.makedirs(yolo_path)
+        else:
+            print("dir is exist:%s" % yolo_path)
+
+    label_names = getFileName(json_dir, ".json")
     for name in label_names:
-        label_path = os.path.join(json_path, name)
-        img_path = os.path.join(img_floder, name.replace(".json", ".jpg"))
+        label_path = os.path.join(json_dir, name)
+        img_path = os.path.join(img_dir, name.replace(".json", ".jpg"))
         if not os.path.exists(img_path):
             print("图像文件缺失：%s" % img_path)
             continue
+        os.system("cp " + img_path + " " + save_img_path %
+                  (name.replace(".json", ".jpg")))
+        os.system("cp " + label_path + " " + save_label_path %
+                  (name))
 
-        # 读取 JSON 文件
-        with open(label_path, "r") as json_file:
-            data = json.load(json_file)
-
-        # 输出当前字段值
-        print("Current name:", data["imagePath"])
-
-        # 修改字段值
-        data["imagePath"] = img_path_in_json % (floder, name.replace(".json", ""))
-
-        # 保存回文件
-        with open(label_path, "w") as json_file:
-            json.dump(data, json_file, indent=4)
-
-        os.system("cp " + img_path + " " + save_img_path % (floder, name.replace(".json", "")))
-        os.system("cp " + label_path + " " + save_label_path % (floder, name.replace(".json", "")))
 
 if __name__ == '__main__':
     main()

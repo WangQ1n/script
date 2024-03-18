@@ -2,6 +2,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from PIL import Image
 import os
+
+
 def images_to_pdf(image_paths, pdf_output_path):
     c = canvas.Canvas(pdf_output_path, pagesize=letter)
 
@@ -18,6 +20,7 @@ def images_to_pdf(image_paths, pdf_output_path):
     # 保存PDF文件
     c.save()
 
+
 def get_image_files_recursive(folder_path, extensions=['jpg', 'jpeg', 'png', 'gif']):
     image_files = []
 
@@ -27,6 +30,7 @@ def get_image_files_recursive(folder_path, extensions=['jpg', 'jpeg', 'png', 'gi
                 image_files.append(os.path.join(root, file))
 
     return image_files
+
 
 if __name__ == "__main__":
     # 图片文件的路径列表

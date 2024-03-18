@@ -68,3 +68,14 @@ target_link_libraries(fillPoly_test
   ${OpenCV_LIBS}
 )
 
+add_executable(main_test
+        src_cpp/main.cpp 
+        src_cpp/utils.cpp        
+)
+
+target_link_libraries(main_test
+        ${OpenCV_LIBS}
+        ${CUDA_cublas_LIBRARY}
+        cudart
+)
+

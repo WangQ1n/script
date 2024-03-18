@@ -16,7 +16,7 @@ import cv2
 import PIL.Image
 
 from sklearn.model_selection import train_test_split
-from labelme import utils
+# from labelme import utils
 
 val_size = 0.1
 json_name = None
@@ -27,9 +27,12 @@ datasets = {"shen12": ["2023-08-11",
                        "2023-09-26",
                        "2023-09-27"],
             "puzhen": ["2023-12-28"],
-            "qiaolin": ["2024-1-6-morning"]}
-save_path = "/home/crrcdt123/datasets/railway_segmentation/mixed_111"
+            "qiaolin": ["2024-1-6-morning"],
+            "s8": ["2024-03-07"]}
+save_path = "/home/crrcdt123/datasets/railway_segmentation/mixed_20240315"
 cnt_ = 0
+
+
 class Labelme2YOLO(object):
 
     def __init__(self, json_dir, img_dir, save_dir, cnt):
@@ -40,16 +43,19 @@ class Labelme2YOLO(object):
         self._cnt = cnt
 
     def _make_train_val_dir(self):
+        if os.path.exists(self._save_dir) and self._cnt == 0:
+            shutil.rmtree(self._save_dir)
         self._label_dir_path = os.path.join(self._save_dir,
                                             'labels/')
         self._image_dir_path = os.path.join(self._save_dir,
                                             'images/')
-        for yolo_path in (os.path.join(self._label_dir_path + 'train/'),
+        for yolo_path in (self._label_dir_path,
+                          self._image_dir_path,
+                          os.path.join(self._label_dir_path + 'train/'),
                           os.path.join(self._label_dir_path + 'val/'),
                           os.path.join(self._image_dir_path + 'train/'),
                           os.path.join(self._image_dir_path + 'val/')):
-            if os.path.exists(yolo_path) and self._cnt == 0:
-                shutil.rmtree(yolo_path)
+            if os.path.exists(yolo_path) is False:
                 os.makedirs(yolo_path)
 
     def _get_label_id_map(self, json_dir):
@@ -67,13 +73,13 @@ class Labelme2YOLO(object):
     def _train_test_split(self, folders, json_names, val_size):
         if len(folders) > 0 and 'train' in folders and 'val' in folders:
             train_folder = os.path.join(self._json_dir, 'train/')
-            train_json_names = [train_sample_name + '.json' \
-                                for train_sample_name in os.listdir(train_folder) \
+            train_json_names = [train_sample_name + '.json'
+                                for train_sample_name in os.listdir(train_folder)
                                 if os.path.isdir(os.path.join(train_folder, train_sample_name))]
 
             val_folder = os.path.join(self._json_dir, 'val/')
-            val_json_names = [val_sample_name + '.json' \
-                              for val_sample_name in os.listdir(val_folder) \
+            val_json_names = [val_sample_name + '.json'
+                              for val_sample_name in os.listdir(val_folder)
                               if os.path.isdir(os.path.join(val_folder, val_sample_name))]
 
             return train_json_names, val_json_names
@@ -86,10 +92,10 @@ class Labelme2YOLO(object):
         return train_json_names, val_json_names
 
     def convert(self, val_size):
-        json_names = [file_name for file_name in os.listdir(self._json_dir) \
-                      if os.path.isfile(os.path.join(self._json_dir, file_name)) and \
+        json_names = [file_name for file_name in os.listdir(self._json_dir)
+                      if os.path.isfile(os.path.join(self._json_dir, file_name)) and
                       file_name.endswith('.json')]
-        folders = [file_name for file_name in os.listdir(self._json_dir) \
+        folders = [file_name for file_name in os.listdir(self._json_dir)
                    if os.path.isdir(os.path.join(self._json_dir, file_name))]
         train_json_names, val_json_names = self._train_test_split(
             folders, json_names, val_size)
@@ -175,7 +181,7 @@ class Labelme2YOLO(object):
     def _get_other_shape_yolo_object(self, shape, img_h, img_w):
 
         def __get_object_desc(obj_port_list):
-            __get_dist = lambda int_list: max(int_list) - min(int_list)
+            def __get_dist(int_list): return max(int_list) - min(int_list)
 
             x_lists = [port[0] for port in obj_port_list]
             y_lists = [port[1] for port in obj_port_list]
@@ -212,7 +218,7 @@ class Labelme2YOLO(object):
             label_id_polygon_points.append(label_id)
         else:
             return label_id_polygon_points
-        
+
         x_lists, y_lists = __get_points_list(shape['points'])
         for x_point, y_point in zip(x_lists, y_lists):
             yolo_x = round(float(x_point / img_w), 6)
@@ -263,9 +269,9 @@ class Labelme2YOLO(object):
                                  'dataset.yaml')
 
         with open(yaml_path, 'w+') as yaml_file:
-            yaml_file.write('train: %s\n' % \
+            yaml_file.write('train: %s\n' %
                             os.path.join(self._image_dir_path, 'train/'))
-            yaml_file.write('val: %s\n\n' % \
+            yaml_file.write('val: %s\n\n' %
                             os.path.join(self._image_dir_path, 'val/'))
             yaml_file.write('nc: %i\n\n' % len(self._label_id_map))
 
