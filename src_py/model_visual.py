@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-
+import torch
 import torchvision.models as models
 import torchvision.transforms as transforms
 
@@ -9,12 +9,14 @@ from pytorch_grad_cam.utils.image import show_cam_on_image
 
 
 # 1.定义模型结构，选取要可视化的层
-resnet18 = models.resnet18(pretrained=True)
+# resnet18 = models.resnet18(pretrained=True)
+resnet18 = models.resnet18()
+# resnet18.load_state_dict(torch.load("/home/crrcdt123/git/mmpretrain/work_dirs/resnet18_8xb32_in1k/epoch_111.pth"))
 resnet18.eval()
 traget_layers = [resnet18.layer4[1].bn2]
 print(resnet18)
 # 2.读取图片，将图片转为RGB
-origin_img = cv2.imread('/home/crrcdt123/datasets/YOLOX/data/VOCdevkit/VOC2007/JPEGImages/000210.jpg')
+origin_img = cv2.imread('/home/crrcdt123/二门数据/datasets/test/02523/1.jpg')
 rgb_img = cv2.cvtColor(origin_img, cv2.COLOR_BGR2RGB)
 
 # 3.图片预处理：resize、裁剪、归一化

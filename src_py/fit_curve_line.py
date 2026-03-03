@@ -1,85 +1,69 @@
-import os
-import cv2
-from lxml.etree import Element, SubElement, tostring
-import detect_yolov5 as detect
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import BSpline
 
-classes=['desk','packet','cue']
+# 指定一组点
+points = np.array([
+    [0.0, 9.0],
+    [1.0, 8.0],
+    [2.0, 9.0],
+    [3.0, 9.0],
+    [4.0, 4.0],
+    [5.0, 9.0],
+    [6.0, 8.0],
+    [7.0, 9.0],
+    [8.0, 8.0],
+    [9.0, 7.0],
+])
 
+# 贝塞尔曲线生成（使用De Casteljau算法）
+def bezier_curve(points, n_times=1000):
+    n_points = len(points)
+    combinations = np.array([np.math.factorial(n_points - 1) / 
+                             (np.math.factorial(i) * np.math.factorial(n_points - 1 - i)) 
+                             for i in range(n_points)])
+    
+    def bezier_interp(t):
+        return sum(combinations[i] * (1 - t)**(n_points - 1 - i) * t**i * points[i] for i in range(n_points))
+    
+    return np.array([bezier_interp(t) for t in np.linspace(0, 1, n_times)])
 
-def create_xml(list_xml,list_images,xml_path):
-    """
-    创建xml文件，依次写入xml文件必备关键字
-    :param list_xml:   txt文件中的box
-    :param list_images:   图片信息，xml中需要写入WHC
-    :return:
-    """
-    node_root = Element('annotation')
-    node_folder = SubElement(node_root, 'folder')
-    node_folder.text = 'Images'
-    node_filename = SubElement(node_root, 'filename')
-    node_filename.text = str(list_images[3])
-    node_size = SubElement(node_root, 'size')
-    node_width = SubElement(node_size, 'width')
-    node_width.text = str(list_images[1])
-    node_height = SubElement(node_size, 'height')
-    node_height.text = str(list_images[0])
-    node_depth = SubElement(node_size, 'depth')
-    node_depth.text = str(list_images[2])
+# B样条曲线生成
+def bspline_curve(points, n_times=1000):
+    degree = 3  # B样条的阶数
+    n_points = len(points)
+    knots = np.concatenate(([0] * degree, np.linspace(0, 1, n_points - degree + 1), [1] * degree))
+    spl = BSpline(knots, points, degree)
+    return spl(np.linspace(0, 1, n_times))
 
-    if len(list_xml)>=1:        # 循环写入box
-        for list_ in list_xml:
-            node_object = SubElement(node_root, 'object')
-            node_name = SubElement(node_object, 'name')
-            # if str(list_[4]) == "person":                # 根据条件筛选需要标注的标签,例如这里只标记person这类，不符合则直接跳过
-            #     node_name.text = str(list_[4])
-            # else:
-            #     continue
-            node_name.text = str(list_[4])
-            node_difficult = SubElement(node_object, 'difficult')
-            node_difficult.text = '0'
-            node_bndbox = SubElement(node_object, 'bndbox')
-            node_xmin = SubElement(node_bndbox, 'xmin')
-            node_xmin.text = str(list_[0])
-            node_ymin = SubElement(node_bndbox, 'ymin')
-            node_ymin.text = str(list_[1])
-            node_xmax = SubElement(node_bndbox, 'xmax')
-            node_xmax.text = str(list_[2])
-            node_ymax = SubElement(node_bndbox, 'ymax')
-            node_ymax.text = str(list_[3])
+# 拟合的三次多项式曲线生成，轨道更符合三次曲线
+def cubic_fit_curve(points, n_times=1000):
+    x = points[:, 0]
+    y = points[:, 1]
+    coefficients = np.polyfit(x, y, 3)
+    polynomial = np.poly1d(coefficients)
+    x_new = np.linspace(x.min(), x.max(), n_times)
+    y_new = polynomial(x_new)
+    return np.column_stack((x_new, y_new))
 
-    xml = tostring(node_root, pretty_print=True)   # 格式化显示，该换行的换行
+# 生成贝塞尔曲线
+bezier_points = bezier_curve(points)
 
-    file_name = list_images[3].split(".")[0]
-    filename = xml_path+"/{}.xml".format(file_name)
+# 生成B样条曲线
+bspline_points = bspline_curve(points)
 
-    f = open(filename, "wb")
-    f.write(xml)
-    f.close()
+# 生成拟合的三次多项式曲线
+cubic_fit_points = cubic_fit_curve(points)
 
-
-if __name__ == '__main__':
-
-    path = r"./mytrain/images"        # 图片路径
-    xml_path = r"mytrain/images"      # xml标注保存路径
-
-    for name in os.listdir(path):
-        print(name)
-        #xml_name=name.split('.')[0]+".xml"
-
-        if(name.split('.')[-1]=='jpg'):
-            image = cv2.imread(os.path.join(path, name))
-            list_image = (image.shape[0], image.shape[1], image.shape[2], name)  # 图片的宽高等信息
-
-            result = detect.detect(image)
-
-            xyxy_list = []
-            for res in result:
-                x_min = res['position'][0]
-                y_min = res['position'][1]
-                x_max = res['position'][0] + res['position'][2]
-                y_max = res['position'][1] + res['position'][3]
-                name = res['class']
-                _list = [x_min, y_min, x_max, y_max, name]
-                xyxy_list.append(_list)
-
-            create_xml(xyxy_list, list_image, xml_path)  # 生成标注的xml文件
+# 可视化
+plt.figure(figsize=(10, 5))
+plt.plot(points[:, 0], points[:, 1], 'ro--', label='Control Points')
+plt.plot(bezier_points[:, 0], bezier_points[:, 1], 'b-', label='Bezier Curve')
+plt.plot(bspline_points[:, 0], bspline_points[:, 1], 'g-', label='B-Spline Curve')
+plt.plot(cubic_fit_points[:, 0], cubic_fit_points[:, 1], 'm-', label='Cubic Fit Curve')
+plt.legend()
+plt.title('Bezier, B-Spline, and Cubic Fit Curves')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid()
+plt.show()

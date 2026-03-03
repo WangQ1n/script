@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 
+
 def rename_files_based_on_excel(folder_path, excel_file_path, sheet_name, old_name_column, new_name_column):
     # 读取要用作映射的 Excel 文件
     excel_data = pd.read_excel(excel_file_path, sheet_name=sheet_name)
@@ -22,23 +23,22 @@ def rename_files_based_on_excel(folder_path, excel_file_path, sheet_name, old_na
                 print(f"未找到目标数据 {name}")
             if len(row_index) == 1:
                 row_index = row_index[0]
-                order = excel_data.iloc[row_index, 5]
-                if order == "高华鑫":
-                    new_name = excel_data.iloc[row_index, 3] + "数据表"
-                    print(new_name)
-                    #构建新的文件路径
-                    new_file_path = os.path.join(folder_path, new_name + ".xlsx")
-                    #重命名文件
-                    os.rename(file_path, new_file_path)
-                    print(f"文件重命名: {filename} -> {new_name}.xlsx")
+                new_name = excel_data.iloc[row_index, 4]
+                # new_name = excel_data.iloc[row_index, 3] + "数据表"
+                print(new_name)
+                # 构建新的文件路径
+                new_file_path = os.path.join(folder_path, new_name + ".xlsx")
+                # 重命名文件
+                os.rename(file_path, new_file_path)
+                print(f"文件重命名: {filename} -> {new_name}.xlsx")
             elif len(row_index) > 1:
                 print(f"目标数据 {name} 位于第 {row_index} 行")
 
 
 # 示例用法
-folder_path = "/home/crrcdt123/Downloads/20240124设备描述_数据表/1PE压力管道"
-excel_file_path = "/home/crrcdt123/Downloads/20240124设备描述_数据表/扬子石化B级设备自查情况20240124-设备分工.xlsx"
-sheet_name = "Sheet1 (2)"
+folder_path = "/home/crrcdt123/Downloads/xinxin/数据表"
+excel_file_path = "/home/crrcdt123/Downloads/xinxin/PE车间C类设备自查清单.xlsx"
+sheet_name = "塑料厂"
 old_name_column = 3
 new_name_column = 4
 

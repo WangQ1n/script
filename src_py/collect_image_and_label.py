@@ -2,7 +2,7 @@
 # 整理无标签的图像：搜集匹配的图像和标签，存入另一个文件夹
 ##################################
 import os
-import shutil
+import json
 
 def getFileName(Path_File, Type_File):
     # Path_File是文件夹的路径，Type_File是文件的种类（Eg：‘.txt’）
@@ -21,15 +21,16 @@ def getFileName(Path_File, Type_File):
 
 
 def main():
-    root = "/media/crrcdt123/glam1/crrc/datasets/s8/video_raw/train/"
-    collect_dir = "/home/crrcdt123/datasets/railway_segmentation/s8/2024-03-07/"
+    root = "/media/crrcdt123/glam/crrc/data/su7/20260206/video_obj/"
+    collect_dir = "/home/crrcdt123/datasets/railway_segmentation/su7/2026-02-06/"
     img_dir = os.path.join(root, "images")
     json_dir = os.path.join(root, "labels")
     save_img_dir = os.path.join(collect_dir, "images")
+    save_img_dir2 = os.path.join(collect_dir, "train2")
     save_label_dir = os.path.join(collect_dir, "labels")
     save_img_path = os.path.join(save_img_dir, "%s")
     save_label_path = os.path.join(save_label_dir, "%s")
-    for yolo_path in (save_img_dir, save_label_dir):
+    for yolo_path in (save_img_dir, save_img_dir2, save_label_dir):
         if os.path.exists(yolo_path) is False:
             os.makedirs(yolo_path)
         else:
@@ -42,9 +43,20 @@ def main():
         if not os.path.exists(img_path):
             print("图像文件缺失：%s" % img_path)
             continue
-        os.system("cp " + img_path + " " + save_img_path %
+        # if " (1)" in name:
+        #     # 读取 JSON 文件
+        #     with open(label_path, 'r') as file:
+        #         data = json.load(file)
+        #     # 修改 imagePath 字段信息
+        #     data['imagePath'] = data['imagePath'].replace(" (1)", "")
+        #     # 将修改后的数据写回 JSON 文件
+        #     with open(label_path, 'w') as file:
+        #         json.dump(data, file, indent=2)
+        os.system("cp '" + img_path + "' " + save_img_path %
                   (name.replace(".json", ".jpg")))
-        os.system("cp " + label_path + " " + save_label_path %
+        # os.system("cp '" + img_path.replace("test", "test2") + "' " + save_img_path.replace("train", "train2") %
+        #           (name.replace(".json", ".jpg")))
+        os.system("cp '" + label_path + "' " + save_label_path %
                   (name))
 
 

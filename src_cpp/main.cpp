@@ -2,7 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <opencv2/xfeatures2d.hpp>
+// #include <opencv2/xfeatures2d.hpp>
 #include <thread>
 // #include "utils.h"
 #include <cuda_runtime.h>
@@ -18,9 +18,31 @@ void mouse_callback(int event, int x, int y, int flags, void* userdata);
 bool GpuCopyTest();
 
 int main() {
+  const size_t size = 9 * 1024 * 1024 * 1024;  // 10GB
+
+  // 使用 new 申请10GB的内存
+  char* buffer = (char*)malloc(size);
+  if (buffer) {
+    printf("malloc 10 GB sucees\n");
+    // 保持内存分配，并做一些操作（比如写入数据）
+    for (size_t i = 0; i < size; i++) {
+      buffer[i] = 0;  // 填充内存，防止优化掉
+    }
+
+    // 等待用户查看 top 工具中的内存使用
+    std::cout << "Press any key to release memory..." << std::endl;
+    std::cin.get();  // 等待用户输入，确保内存占用持续一段时间
+
+    // 释放内存
+    free(buffer);
+
+    std::cout << "Memory released!" << std::endl;
+  } else {
+    printf("malloc 10 GB failed\n");
+  }
   // printHSV();
   // openCamera();
-  GpuCopyTest();
+  // GpuCopyTest();
   // uchar a = '3';
   // uchar b = '5';
   // int c = (int)a * 0.1;
@@ -30,6 +52,19 @@ int main() {
 }
 
 bool GpuCopyTest() {
+  uint64_t curr_key = 1709709054757181696;
+  uint64_t key = 1709709044099035904;
+  double dist_a = (curr_key > key) ? double(curr_key - key) : double(key - curr_key);                //
+  double dist = (curr_key > key) ? double(curr_key - key) / 1.0e6 : double(key - curr_key) / 1.0e6;  //
+  std::cout << dist_a << " " << dist << std::endl;
+  std::string type = "fork";
+  type += "_disable";
+  if (type.find("disable") == std::string::npos) {
+    std::cout << "not find disable" << std::endl;
+  } else {
+    std::cout << "find disable" << std::endl;
+  }
+  return 0;
   // 读取图像
   cv::Mat srcImage =
       cv::imread("/home/crrcdt123/datasets2/二门防夹数据/s8-cam224/cam224-End-20240307-131719107.jpg");
@@ -176,7 +211,6 @@ bool GpuCopyTest() {
 
 // //---------------------------------------------------//
 // // 鼠标事件 获取兴趣区域 start
-// // 鼠标事件回调
 // void mouse_callback(int event, int x, int y, int flags, void* userdata) {
 //   cv::Mat* im = reinterpret_cast<cv::Mat*>(userdata);  // 转换成Mat型指针
 //   cv::Mat src(im->size(), CV_8UC3);

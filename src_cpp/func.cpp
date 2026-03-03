@@ -1,9 +1,11 @@
 #include <opencv2/opencv.hpp>
 
 int flaw_detect();
-
+int clahe();
 
 int main() {
+  clahe();
+  return 0;
   cv::Mat img = cv::Mat::zeros(cv::Size(1920, 1080), CV_8UC3);
   cv::Rect rect(224, 1030, 1200, 50);
   cv::Mat img2;
@@ -34,6 +36,30 @@ int main() {
   return 0;
 }
 
+int clahe() {
+   // 读取图像
+    cv::Mat image = cv::imread("/home/crrcdt123/二门数据/1012_delay_1.5/cam113-End-20241009-062646437.jpg", cv::IMREAD_GRAYSCALE);  // 读取为灰度图像
+    if (image.empty()) {
+        std::cerr << "Could not open or find the image!" << std::endl;
+        return -1;
+    }
+
+    // 创建 CLAHE 对象
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+    clahe->setClipLimit(2.0);  // 对比度限制
+    clahe->setTilesGridSize(cv::Size(8, 8));  // 局部区域大小
+
+    // 应用 CLAHE
+    cv::Mat clahe_image;
+    clahe->apply(image, clahe_image);
+
+    // 显示结果
+    cv::imshow("Original Image", image);
+    cv::imshow("CLAHE Image", clahe_image);
+
+    cv::waitKey(0);
+    return 0;
+}
 int flaw_detect() {
 // Read the image
     cv::Mat img = cv::imread("/home/crrcdt123/Downloads/1.bmp");
